@@ -164,7 +164,7 @@ def convert_folder(folder_name,output_folder):
                    
                     write_json_paper(os.path.join(output_folder,f+'.json'),mj)
                 except  Exception as e:
-                    logging.error('Error in: '+f)
+                    logging.error('Error in: '+f+' '+str(e))
                     print('Error in: '+f)
                     
                 
