@@ -7,20 +7,6 @@
     "language": ["eng", "spa"]
   },
   "cleaner": [
-    "drawing-detection",
-    [
-      "image-detection",
-      {
-        "ocrImages": false
-      }
-    ],
-    "out-of-page-removal",
-    [
-      "whitespace-removal",
-      {
-        "minWidth": 0
-      }
-    ],
     [
       "redundancy-detection",
       {

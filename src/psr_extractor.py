@@ -181,6 +181,8 @@ def process_psr_pdf(file_path, filename, output_folder,mode):
         write_file(mark_file,txt)
         
     if exis==True and mode == 'light':
+        #remove file
+        os.remove(fout)
         return
     
     ## fourth part: extract info
