@@ -175,7 +175,9 @@ def process_psr_pdf(file_path, filename, output_folder,mode):
     ## third part: send doc to parsr
 
     if exis== True and mode !='force':
-        logging.info('Markdown file already existis. Skipping parsing '+filename)    
+        logging.info('Markdown file already existis. Skipping parsing '+filename)
+        txt= read_file(mark_file)
+        
     else:
         txt = send_doc(fout,filename)
         write_file(mark_file,txt)
@@ -211,7 +213,7 @@ def convert_folder(folder_name,output_folder,mode):
                     
                 except  Exception as e:
                     logging.error('Error in: '+f+' '+str(e))
-                    print('Error in: '+f)
+                    print('Error in: '+f+str(e))
                     
                 
 
@@ -221,6 +223,11 @@ def write_file(name,content):
 
     with io.open(name,'w',encoding='utf8') as f:
         f.write(content)
+        
+def read_file(name):
+
+    with io.open(name,'r',encoding='utf8') as f:
+        return f.read()
 
 
 
