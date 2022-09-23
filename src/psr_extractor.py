@@ -123,13 +123,13 @@ def extract_sections(markdown_text,name,folder):
 
     
 
-def send_doc(file_path):
+def send_doc(file_path,filename):
 
 
     job = parsr.send_document(
         file_path=file_path,
         config_path=config_file,
-        document_name='myfile',
+        document_name=filename,
         wait_till_finished=False,
         save_request_id=True,
         silent=True
@@ -146,9 +146,9 @@ def send_doc(file_path):
 
 
 
-def process_psr_pdf(file_path, filename, output_folder):
+def process_psr_pdf(file_path, filename, output_folder,mode):
     
-    
+    ## first part: get only 2 pages
     fout = os.path.join(output_folder, filename.replace('.pdf','_comprissed.pdf'))
     
     infile = PdfReader(file_path, 'rb')
@@ -163,9 +163,27 @@ def process_psr_pdf(file_path, filename, output_folder):
     
     with open(fout, 'wb') as f:
         output.write(f)
+        
+    
+    ## second part: if markdown exists
+    mark_file = os.path.join(output_folder, filename.replace('.pdf','-Mark.md'))
+    exis = os.path.exists(mark_file)
+    
+    
+    
+    
+    ## third part: send doc to parsr
 
-    txt = send_doc(fout)
-    write_file(os.path.join(output_folder, filename.replace('.pdf','-Mark.md')),txt)
+    if exis== True and mode !='force':
+        logging.info('Markdown file already existis. Skipping parsing '+filename)    
+    else:
+        txt = send_doc(fout,filename)
+        write_file(mark_file,txt)
+        
+    if exis==True and mode == 'light':
+        return
+    
+    ## fourth part: extract info
     extract_sections(txt,filename,output_folder)
     #remove file
     os.remove(fout)
@@ -174,7 +192,7 @@ def process_psr_pdf(file_path, filename, output_folder):
 
 
 
-def convert_folder(folder_name,output_folder):
+def convert_folder(folder_name,output_folder,mode):
 
     # dirs=directories
     for (root, dirs, files) in os.walk(folder_name):
@@ -186,7 +204,7 @@ def convert_folder(folder_name,output_folder):
                 try:
                     #path=    '/Users/Pablo/Downloads/REDIB_SML/training_tips.tei.xml' 
                     filepath = os.path.join(root, f)
-                    process_psr_pdf(filepath,f,output_folder)
+                    process_psr_pdf(filepath,f,output_folder,mode)
                    
                     
                 except  Exception as e:
@@ -207,16 +225,21 @@ def write_file(name,content):
 def main(argv):
     input_folder = argv[0]
     output_folder = argv[1]
+    if len(argv) >2:
+        mode = argv[2]
+    else:
+        mode='normal'
     
     logging.basicConfig(filename='parsr_extractot.log', level=logging.INFO)
     logging.info('Started')
-    convert_folder(input_folder,output_folder)
+    convert_folder(input_folder,output_folder,mode)
     logging.info('Finished')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
     
     
+
 
 '''
 pattern = r'(\*{2}[A-Za-z .:]+\*{2})'
