@@ -21,6 +21,8 @@ parsr = client('localhost:3001')
 
 config_file= 'defaultConfig.json'
 
+counter_jobs = 0
+
 
 
 def wait_for_process(jobid):
@@ -81,7 +83,6 @@ def split_by_quotes(text):
             continue
         if i.startswith('*') and cond== True:
             head=head+' '+i.replace('*','')
-            print('uno '+head)
             cond=True
             continue
         if i.startswith('*'):
@@ -124,7 +125,12 @@ def extract_sections(markdown_text,name,folder):
     
 
 def send_doc(file_path,filename):
+    
+    global counter_jobs
 
+    if counter_jobs > 400:
+        parsr = client('localhost:3001')
+        counter_jobs=0
 
     job = parsr.send_document(
         file_path=file_path,
@@ -138,20 +144,16 @@ def send_doc(file_path,filename):
     wait_for_process(jobid)
     
     txt= parsr.get_markdown()
+    
+    counter_jobs = counter_jobs+1
     return txt
     
 
 
 
-
-
-
-def process_psr_pdf(file_path, filename, output_folder,mode):
-    
-    ## first part: get only 2 pages
-    fout = os.path.join(output_folder, filename.replace('.pdf','_comprissed.pdf'))
-    
-    infile = PdfReader(file_path, 'rb')
+def create_compressed_pdf(original_file,compressed_file):
+     
+    infile = PdfReader(original_file, 'rb')
     output = PdfWriter()
     
     for i in range(len(infile.pages) ):
@@ -161,36 +163,60 @@ def process_psr_pdf(file_path, filename, output_folder,mode):
         else:
             break
     
-    with open(fout, 'wb') as f:
+    with open(compressed_file, 'wb') as f:
         output.write(f)
-        
     
-    ## second part: if markdown exists
+
+
+
+
+def process_psr_pdf(file_path, filename, output_folder,mode):
+    
+    
+     ## first part: if markdown exists
     mark_file = os.path.join(output_folder, filename.replace('.pdf','-Mark.md'))
     exis = os.path.exists(mark_file)
     
+    
+    if exis==True and mode == 'light':
+        print('Light mode: skipping processing '+filename)
+        return
     
     
     
     ## third part: send doc to parsr
 
     if exis== True and mode !='force':
-        logging.info('Markdown file already existis. Skipping parsing '+filename)
+        logging.info('Markdown file already existis. Skipping parsing: '+filename)
+        print('Markdown file already existis. Skipping parsing: '+filename)
         txt= read_file(mark_file)
         
     else:
+         ## first part: get only 2 pages
+        fout = os.path.join(output_folder, filename.replace('.pdf','_comprissed.pdf'))
+        create_compressed_pdf(file_path,fout)
+        
         txt = send_doc(fout,filename)
         write_file(mark_file,txt)
-        
-    if exis==True and mode == 'light':
         #remove file
         os.remove(fout)
-        return
+        
     
-    ## fourth part: extract info
+    
+    logging.info('Extracting sections '+filename)
+    print('Extracting sections '+filename)
     extract_sections(txt,filename,output_folder)
-    #remove file
-    os.remove(fout)
+        
+    
+   
+    
+    
+    
+    
+    
+  
+    
+    
 
 
 
