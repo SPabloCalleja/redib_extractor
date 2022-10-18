@@ -111,6 +111,10 @@ def get_header(element):
 def write_json_paper(file,content):
     with open(file, "w", encoding='utf8') as write_file:
         json.dump(content, write_file, indent=4,ensure_ascii=False)
+def write_txt_paper(file,content):
+    with open(file, "w", encoding='utf8') as write_file:
+        for c in content:
+            write_file.write(str(c)+'\n')
 
 def create_json_paper(file):
     # Reading the data inside the xml file to a variable under the name  data
@@ -148,9 +152,45 @@ def create_json_paper(file):
     return my_json
 
 
+def create_txt_paper(file):
+    # Reading the data inside the xml file to a variable under the name  data
+    with open(file, 'r') as f:
+        data = f.read() 
+    
+    
+    my_json=[]
+    
+    # Passing the stored data inside the beautifulsoup parser 
+    bs_data = BeautifulSoup(data, 'xml')
+    text_header=''
+    
+    try:
+        text_header=get_header(bs_data)
+    except Exception as e:
+        logging.error('Error creating header '+e)
+        raise Exception("Error")
+     
+    for p in text_header:
+        my_json.append(p)
+    
+    
+    try: 
+        data_body=get_sections(bs_data)
+        for d in data_body:
+            my_json.append(str(d['head']))
+            for p in d['p']:
+                my_json.append(str(p))
+
+    except Exception as e:
+        logging.error('Error creating body '+e)
+        raise Exception("Error")
+    
+
+    return my_json
+
 
 import os
-def convert_folder(folder_name,output_folder):
+def convert_folder_tojson(folder_name,output_folder):
 
     # dirs=directories
     for (root, dirs, files) in os.walk(folder_name):
@@ -168,7 +208,23 @@ def convert_folder(folder_name,output_folder):
                     print('Error in: '+f)
                     
                 
+def convert_folder_totxt(folder_name,output_folder):
 
+    # dirs=directories
+    for (root, dirs, files) in os.walk(folder_name):
+        for f in files:
+            
+            if  f.endswith('.tei.xml' ):
+                print(f)
+                try:
+                    #path=    '/Users/Pablo/Downloads/REDIB_SML/training_tips.tei.xml' 
+                    mj= create_txt_paper(os.path.join(root, f))
+                   
+                    write_txt_paper(os.path.join(output_folder,f+'.txt'),mj)
+                except  Exception as e:
+                    logging.error('Error in: '+f+' '+str(e))
+                    print('Error in: '+f)
+                    
 
 
 
@@ -178,7 +234,7 @@ def main(argv):
     
     logging.basicConfig(filename='tei_xml_conversor.log', level=logging.INFO)
     logging.info('Started')
-    convert_folder(input_folder,output_folder)
+    convert_folder_totxt(input_folder,output_folder)
     logging.info('Finished')
 
 if __name__ == '__main__':
