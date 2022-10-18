@@ -61,7 +61,11 @@ def get_sections(element):
         parr_sec=[]
         sect={}
         head = sec.find('head')
-        sect['head']=head.text
+        head_text=''
+        if head != None:
+            head_text=head.text
+        
+        sect['head']=head_text
         for p in paragraphs:
             p= remove_bib(p)
             p= remove_figures(p)
@@ -166,6 +170,7 @@ def create_txt_paper(file):
     
     try:
         text_header=get_header(bs_data)
+        
     except Exception as e:
         logging.error('Error creating header '+e)
         raise Exception("Error")
@@ -174,8 +179,10 @@ def create_txt_paper(file):
         my_json.append(p)
     
     
+
     try: 
         data_body=get_sections(bs_data)
+        
         for d in data_body:
             my_json.append(str(d['head']))
             for p in d['p']:
