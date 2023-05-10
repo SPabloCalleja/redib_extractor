@@ -99,16 +99,18 @@ def get_header(element):
     
     # Finding all instances of tag   
     b_unique = element.find_all('abstract') 
-    b_text = b_unique[0].find('div')
+    parr_section = b_unique[0].find('div')
     
-    abstract= {}
+    if parr_section == None:
+        return []
+
     parr=[]
-    paragraphs = b_text.find_all('p')
+    paragraphs = parr_section.find_all('p')
     for p in paragraphs:
         p = remove_bib(p)
         
         parr.append(p.text)
-
+    
     return parr
    
 
@@ -132,13 +134,12 @@ def create_json_paper(file):
     bs_data = BeautifulSoup(data, 'xml')
     abst_p={}
     
-    try:
-        abst_p['p']=get_header(bs_data)
-    except Exception as e:
-        logging.error('Error creating header '+e)
-        raise Exception("Error")
-        
+    
+    my_json['title']= bs_data.find_all('title')[0].text 
+    
+    abst_p['p']=get_header(bs_data)
     my_json['abstract']=abst_p
+    
     
     
     try: 
@@ -152,7 +153,9 @@ def create_json_paper(file):
         my_json['authors']=get_authors(bs_data)
     except Exception as e:
         logging.error('Error creating authors '+e)
-        raise Exception("Error")
+
+
+
     return my_json
 
 
@@ -241,7 +244,7 @@ def main(argv):
     
     logging.basicConfig(filename='tei_xml_conversor.log', level=logging.INFO)
     logging.info('Started')
-    convert_folder_totxt(input_folder,output_folder)
+    convert_folder_tojson(input_folder,output_folder)
     logging.info('Finished')
 
 if __name__ == '__main__':

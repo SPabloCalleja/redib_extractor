@@ -40,7 +40,7 @@ def main(argv):
     keywords = rake.apply(text)
 
     f = io.open(output_file, mode="w", encoding="utf-8")
-
+    f = io.open('myrake-res.txt', mode="w", encoding="utf-8")
     for k in keywords[:1000]:
       f.write(str(k[0])+'\t'+str(k[1])+'\n')
 
